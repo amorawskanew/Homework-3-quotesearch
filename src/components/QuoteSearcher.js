@@ -4,18 +4,43 @@ import Quote from './Quote';
 export default class QuoteSearcher extends Component {
   state = {
     fetching: true,
+    searchWord: "tree",
     quotes: [],
     numLikes: 0,
     numDislikes: 0
   };
 
-  async componentDidMount() {
-    const url = 'https://quote-garden.herokuapp.com/quotes/search/tree';
-    const response = await fetch(url);
-    const data = await response.json();
-    this.setState({ quotes: data.results, fetching: false });
-    this.state.quotes.forEach(quote => (quote.status = 'neutral'));
+  componentDidMount() {
+    fetch (`https://quote-garden.herokuapp.com/quotes/search/${this.state.searchWord}`)
+      .then(response => response.json())
+      .then(data => {
+        this.updateQuotes(data.results);
+      })
+      .catch(console.error);
+  };
+
+  search = (keyword) => {
+    console.log(keyword);
+    fetch(`https://quote-garden.herokuapp.com/quotes/search/${keyword}`)
+      .then(response => response.json())
+      .then(data => {
+        this.updateQuotes(data.results);
+      })
+      .catch(console.error);
+    ;
+  };
+
+  updateQuotes = (array) => {
+    this.setState({ quotes: array, fetching: false }
+      , () => this.refreshStatus)
   }
+
+  refreshStatus = () => {
+    this.setState({ quotes:
+      this.state.quotes.forEach(quote => (quote.status = 'neutral'))}
+      , () => console.log(this.state.quotes))
+  }
+
 
   setLiked = _id => {
     this.setState({ quotes:
@@ -25,9 +50,10 @@ export default class QuoteSearcher extends Component {
         } else {
           return quote;
         }
-      })
-    });
-    this.updateCounter();
+      })}, ()=>
+      this.updateCounter()
+    );
+    ;
   };
 
   setDisliked = _id => {
@@ -38,9 +64,10 @@ export default class QuoteSearcher extends Component {
         } else {
           return quote;
         }
-      })
-    });
-    this.updateCounter();
+      })}, ()=>
+      this.updateCounter()
+    );
+    ;
   };
 
   updateCounter = () => {
@@ -50,12 +77,26 @@ export default class QuoteSearcher extends Component {
     const dislikedQuotes = this.state.quotes.filter(quote =>
       quote.status === "disliked");
     this.setState({numDislikes: dislikedQuotes.length});
-    console.log(this.state.quotes)
-  }
+  };
+
+  handleChange = (event) => {
+    this.setState({searchWord:event.target.value})
+  };
+
+  handleSubmit = (event) => {
+    this.setState({fetching: true}, ()=>
+      this.search(this.state.searchWord))
+  };
 
   render() {
     return (
       <div className='quotesearcher'>
+        <form onSubmit={this.handleSubmit}>
+          <input
+            type = "text"
+            onChange = {this.handleChange} />
+           <input type="submit" value="Search!" />
+        </form>
         <h2>
           Liked: {this.state.numLikes} / Disliked: {this.state.numDislikes}
         </h2>
